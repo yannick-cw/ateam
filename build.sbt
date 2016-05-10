@@ -1,4 +1,4 @@
-name := "twitter-streaming"
+name := "poc"
 
 version := "0.1-SNAPSHOT"
 
