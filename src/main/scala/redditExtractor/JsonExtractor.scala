@@ -24,7 +24,8 @@ class JsonExtractor(master: ActorRef) extends Actor {
   }
 
   def extractRawDocs(input: String): Seq[RawDoc] = {
-    val subreddit = subredditMatcher.findAllIn(input).matchData.map(_.group(1)).toSeq.head
+    //todo make failsafe
+    val subreddit = subredditMatcher.findFirstIn(input).get.split(":")(1).trim.replace("\"","")
     commentsMatcher.findAllIn(input).matchData.map{ m => RawDoc(subreddit, m.group(2).toInt, m.group(1))}.toSeq ++
       titleMatcher.findAllIn(input).matchData.map{ m => RawDoc(subreddit, m.group(2).toInt, m.group(1))}.toSeq
   }

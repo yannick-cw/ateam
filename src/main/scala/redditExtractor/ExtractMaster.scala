@@ -22,7 +22,7 @@ class ExtractMaster extends Actor {
       println(s"files: $fileCount")
       context become waiting(fileCount + 1, rawDocCount)
     case rd@RawDoc(_,_,_) =>
-      println(rd)
+//      println(rd)
       println(s"docs: $rawDocCount")
       context become waiting(fileCount, rawDocCount + 1)
   }
