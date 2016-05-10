@@ -1,4 +1,4 @@
-package data_science_2016.poc.redditExtractor
+package redditExtractor
 
 import akka.actor.{Actor, ActorRef, Props}
 
