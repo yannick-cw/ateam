@@ -1,3 +1,5 @@
+package twitterStreamExample
+
 import twitter4j._
 import twitter4j.conf.ConfigurationBuilder
 
