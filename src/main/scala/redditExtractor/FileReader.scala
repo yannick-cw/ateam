@@ -28,7 +28,7 @@ class FileReader(master: ActorRef) extends Actor {
   def getFiles(dir: String): List[File] = {
     val directory = new File(dir)
     if (directory.exists && directory.isDirectory) {
-      directory.listFiles.filter(_.isFile).toList
+      directory.listFiles.filter(_.isFile).filter(_.getName.contains(".json")).toList
     } else {
       List.empty[File]
     }
