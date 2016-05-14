@@ -1,4 +1,4 @@
-package redditExtractor
+package reddit_Extractor
 
 import java.io.File
 
