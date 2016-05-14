@@ -1,4 +1,4 @@
-package redditExtractor
+package reddit_Extractor
 
 import scala.io.Source
 

@@ -1,4 +1,4 @@
-package redditExtractor
+package reddit_Extractor
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}

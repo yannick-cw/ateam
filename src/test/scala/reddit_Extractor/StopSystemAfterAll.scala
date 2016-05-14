@@ -1,4 +1,4 @@
-package redditExtractor
+package reddit_Extractor
 
 import akka.testkit.TestKit
 import org.scalatest.{BeforeAndAfterAll, Suite}

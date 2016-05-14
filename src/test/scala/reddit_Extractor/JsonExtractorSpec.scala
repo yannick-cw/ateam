@@ -1,4 +1,4 @@
-package redditExtractor
+package reddit_Extractor
 
 import akka.testkit.{ImplicitSender, TestKit}
 import org.scalatest.{MustMatchers, WordSpecLike}

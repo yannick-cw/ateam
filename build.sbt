@@ -1,4 +1,4 @@
-name := "poc"
+name := "poc-importer"
 
 version := "0.1-SNAPSHOT"
 
@@ -16,4 +16,5 @@ libraryDependencies += "com.typesafe.akka" % "akka-actor_2.11" % "2.4.4"
 
 libraryDependencies += "org.twitter4j" % "twitter4j-stream" % "4.0.4"
 
+libraryDependencies += "io.spray" %%  "spray-json" % "1.3.2"
 
