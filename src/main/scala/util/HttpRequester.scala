@@ -15,10 +15,11 @@ trait HttpRequester {
   implicit val system: ActorSystem
   implicit val materializer: ActorMaterializer
 
-  //todo create settings
-  lazy val connecFlow = Http().outgoingConnection("172.17.0.2", 9200)
+  def futureHttpResponse(req: HttpRequest, host: String, port: Int): Future[HttpResponse] = {
 
-  def futureHttpResponse(req: HttpRequest): Future[HttpResponse] = {
+    //todo lazy??
+    val connecFlow = Http().outgoingConnection(host, port)
+
     Source.single(req)
       .via(connecFlow)
       .runWith(Sink.head)

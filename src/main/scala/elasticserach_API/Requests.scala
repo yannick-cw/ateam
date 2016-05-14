@@ -3,7 +3,7 @@ package elasticserach_API
 import akka.http.scaladsl.client.RequestBuilding
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpResponse}
 import elasticserach_API.Queries.CleanedDoc
-import spray.json.{RootJsonFormat, _}
+import spray.json._
 import util._
 
 import scala.concurrent.Future
@@ -20,7 +20,7 @@ trait Requests extends HttpRequester with Protocols {
 
     val request = RequestBuilding.Post(s"/$index/$docType/",
       entity = HttpEntity(ContentTypes.`application/json`, cleanedDoc.toJson.compactPrint))
-    futureHttpResponse(request)
+    futureHttpResponse(request, "172.17.0.2", 9200)
   }
 
   private def matchIndex(cleanedDoc: CleanedDoc): String = cleanedDoc.src match {

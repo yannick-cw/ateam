@@ -1,6 +1,8 @@
 package reddit_Extractor
 
 import akka.actor.{Actor, ActorSystem, Props}
+import cleaning_connection.CleanRequester
+import elasticserach_API.Queries.CleanedDoc
 
 /**
   * Created by yannick on 10.05.16.
@@ -12,6 +14,7 @@ object ExtractMaster {
 class ExtractMaster extends Actor {
   val fileReader = context.actorOf(FileReader.props(self), "reader")
   val jsonExtractor = context.actorOf(JsonExtractor.props(self), "jsonExtractor")
+  val cleanRequester = context.actorOf(CleanRequester.props(self), "cleanRequester")
 
   def receive = waiting(0,0, RawDoc("",0,""))
 
@@ -22,10 +25,13 @@ class ExtractMaster extends Actor {
 //      println(s"files: $fileCount")
       context become waiting(fileCount + 1, rawDocCount, mostUpvoted)
     case rd@RawDoc(_,_,_) =>
+      cleanRequester ! rd
 //      println(rd)
 //      println(s"docs: $rawDocCount")
       println(rd)
       context become waiting(fileCount, rawDocCount + 1, if(mostUpvoted.up > rd.up) mostUpvoted else {println(s"most: $rd");rd})
+    case cd@CleanedDoc(_,_,_,_) =>
+      //todo fire at elastic safe actor
   }
 }
 

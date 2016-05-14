@@ -18,3 +18,6 @@ libraryDependencies += "org.twitter4j" % "twitter4j-stream" % "4.0.4"
 
 libraryDependencies += "io.spray" %%  "spray-json" % "1.3.2"
 
+libraryDependencies += "com.typesafe.akka" % "akka-http-spray-json-experimental_2.11" % "2.4.2"
+
+
