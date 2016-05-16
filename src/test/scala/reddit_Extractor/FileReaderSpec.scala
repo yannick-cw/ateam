@@ -20,9 +20,7 @@ class FileReaderSpec extends TestKit(ActorSystem())
       val fileReader = system.actorOf(FileReader.props(testActor))
       fileReader ! msg
 
-      expectMsg(InputString("gude!\na\n"))
       expectMsg(InputString("lilalu\nschmu\n"))
-      expectMsg(InputString("isAFile\n"))
     }
   }
 
