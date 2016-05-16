@@ -3,6 +3,7 @@ package reddit_Extractor
 import akka.actor.{Actor, ActorSystem, Props}
 import cleaning_connection.CleanRequester
 import elasticserach_API.ElasticSaveActor
+import elasticserach_API.ElasticSaveActor.{ElasticError, ElasticResult, Saved, ServerError}
 import elasticserach_API.Queries.CleanedDoc
 
 /**
@@ -33,6 +34,11 @@ class ExtractMaster extends Actor {
       println(rd)
       context become waiting(fileCount, rawDocCount + 1, if(mostUpvoted.up > rd.up) mostUpvoted else {println(s"most: $rd");rd})
     case cd@CleanedDoc(_,_,_,_) => elasticSaver ! cd
+    case res: ElasticResult => res match {
+      case Saved(cleanedDoc) =>
+      case ElasticError(code, res) => println(s"Errorcode: $code with $res")
+      case ServerError(ex) => println(ex)
+    }
   }
 }
 
