@@ -13,7 +13,7 @@ import scala.util.Failure
   * Created by yannick on 07.05.16.
   */
 trait Requests extends HttpRequester with Protocols {
-  val (rep, dem) = ("republican", "democrat")
+  val (rep, dem) = ("rep", "dem")
 
   def insert(cleanedDoc: CleanedDoc): Future[HttpResponse] = {
     val index = matchIndex(cleanedDoc)
@@ -21,7 +21,7 @@ trait Requests extends HttpRequester with Protocols {
 
     index match {
       case Some(str) =>
-        val request = RequestBuilding.Post(s"/$index/$docType/",
+        val request = RequestBuilding.Post(s"/$str/$docType/",
           entity = HttpEntity(ContentTypes.`application/json`, cleanedDoc.toJson.compactPrint))
         futureHttpResponse(request, "172.17.0.2", 9200)
 

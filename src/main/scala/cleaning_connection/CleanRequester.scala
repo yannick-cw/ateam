@@ -31,15 +31,20 @@ class CleanRequester(master: ActorRef) extends Actor with Protocols with HttpReq
 
   def receive: Receive = {
     case RawDoc(src, up, rawText) =>
-      val request = RequestBuilding.Post("clean",
+      Thread.sleep(100)
+
+      val request = RequestBuilding.Post("/clean",
         entity = HttpEntity(ContentTypes.`application/json`, RawText(rawText).toJson.prettyPrint))
       //todo settings
-      val futureRes = futureHttpResponse(request, "localhost", 4321)
+      val futureRes = futureHttpResponse(request, "0.0.0.0", 4321)
 
       futureRes.onSuccess {
         case HttpResponse(StatusCodes.OK, _, entity, _) =>
           val cleanedText = Unmarshal(entity).to[CleanedText]
-          cleanedText.foreach { clean => master ! CleanedDoc(src, up, rawText, clean.cleanedText) }
+          cleanedText.onComplete {
+            case Success(cleaned) => master ! CleanedDoc(src, up, rawText, cleaned.cleanedText)
+            case Failure(e) => println(e.getMessage)
+          }
 
         case HttpResponse(code , _, entity, _) => println(s"Errorcode: $code with $entity")
       }

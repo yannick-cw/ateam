@@ -33,8 +33,8 @@ class ElasticSaveActor(master: ActorRef) extends Actor with Requests {
       val futureRes: Future[HttpResponse] = insert(cd)
 
       futureRes.onSuccess {
-        case HttpResponse(StatusCodes.OK, _, entity, _) =>
-          entity.dataBytes.runWith(Sink.ignore)
+        case HttpResponse(StatusCodes.Created, _, entity, _) =>
+//          entity.dataBytes.runWith(Sink.head).map(_.utf8String).foreach(println)
           master ! Saved(cd)
 
         case HttpResponse(code , _, entity, _) =>
