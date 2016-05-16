@@ -31,12 +31,14 @@ class ExtractMaster extends Actor {
       cleanRequester ! rd
 //      println(rd)
 //      println(s"docs: $rawDocCount")
-      println(rd)
+//      println(rd)
       context become waiting(fileCount, rawDocCount + 1, if(mostUpvoted.up > rd.up) mostUpvoted else {println(s"most: $rd");rd})
-    case cd@CleanedDoc(_,_,_,_) => elasticSaver ! cd
+    case cd@CleanedDoc(_,_,_,_) =>
+//      println("cleaned")
+      elasticSaver ! cd
     case res: ElasticResult => res match {
-      case Saved(cleanedDoc) =>
-      case ElasticError(code, res) => println(s"Errorcode: $code with $res")
+      case Saved(cleanedDoc) => println("saved")
+      case ElasticError(code, resp) => println(s"Errorcode: $code with $resp")
       case ServerError(ex) => println(ex)
     }
   }
