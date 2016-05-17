@@ -14,7 +14,7 @@ import spray.json._
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
 
@@ -37,7 +37,7 @@ class CleanRequester(master: ActorRef) extends Actor with Protocols with HttpReq
         entity = HttpEntity(ContentTypes.`application/json`, RawText(rawText).toJson.prettyPrint))
       //todo settings
       val futureRes = futureHttpResponse(request, "0.0.0.0", 4321)
-      println("firing")
+      Await.ready(futureRes, 10 seconds)
 
       futureRes.onSuccess {
         case HttpResponse(StatusCodes.OK, _, entity, _) =>
@@ -51,7 +51,8 @@ class CleanRequester(master: ActorRef) extends Actor with Protocols with HttpReq
       }
 
       futureRes.onFailure {
-        case ex => println(ex.getMessage)
+        case ex =>
+          println("http to clean failed: " + ex.getMessage)
       }
 
   }

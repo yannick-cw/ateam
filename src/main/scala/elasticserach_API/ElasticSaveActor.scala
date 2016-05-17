@@ -10,6 +10,8 @@ import elasticserach_API.Queries.CleanedDoc
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
+
 
 /**
   * Created by Yannick on 16.05.16.
@@ -32,6 +34,7 @@ class ElasticSaveActor(master: ActorRef) extends Actor with Requests {
     case cd@CleanedDoc(_, _, _, _) =>
       val futureRes: Future[HttpResponse] = insert(cd)
 
+      Await.ready(futureRes, 20 seconds)
       futureRes.onSuccess {
         case HttpResponse(StatusCodes.Created, _, entity, _) =>
 //          entity.dataBytes.runWith(Sink.head).map(_.utf8String).foreach(println)
