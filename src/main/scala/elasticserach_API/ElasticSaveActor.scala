@@ -20,50 +20,49 @@ object ElasticSaveActor {
   def props(master: ActorRef) = Props(new ElasticSaveActor(master))
 
   sealed trait ElasticResult
-  case class Saved(cleanedDoc: CleanedDoc) extends ElasticResult
+
+  case class Saved(cleanedDocs: List[CleanedDoc]) extends ElasticResult
+
   case class ElasticError(code: StatusCode, res: String) extends ElasticResult
+
   case class ServerError(ex: String) extends ElasticResult
+
 }
 
 class ElasticSaveActor(master: ActorRef) extends Actor with Requests {
 
   implicit val system = context.system
   implicit val materializer: ActorMaterializer = ActorMaterializer()
-  var docs = List.empty[CleanedDoc]
+  val bufferSize: Int = 100
 
-  def receive: Receive = {
-    case cd@CleanedDoc(_, _, _, _) =>
+  def receive: Receive = bulkSaving(List.empty[CleanedDoc])
 
-      docs = cd +: docs
+  def bulkSaving(buffer: List[CleanedDoc]): Receive = {
+    case cleanedDoc: CleanedDoc =>
+      val newBuffer = cleanedDoc +: buffer
 
-      if(docs.size == 100)
-        {
-          val futureRes = bulkInsert(docs)
-          println("waiting")
-          Await.ready(futureRes, 100 seconds)
-          println("ready")
-          futureRes.onSuccess {
-            case HttpResponse(StatusCodes.OK, _, entity, _) =>
-//                        entity.dataBytes.runWith(Sink.head).map(_.utf8String).foreach(println)
-              //needed for backpressure
-              entity.dataBytes.runWith(Sink.ignore)
-              master ! Saved(cd)
+      if (newBuffer.size == bufferSize) {
 
-            case HttpResponse(code , _, entity, _) =>
-              val resString = entity.dataBytes.runWith(Sink.head).map(_.utf8String)
-              master ! ElasticError(code, Await.result(resString, Duration.Inf))
-          }
+        val futureRes = bulkInsert(newBuffer)
+        Await.ready(futureRes, 100 seconds)
 
-          futureRes.onFailure {
-            case ex => master ! ServerError(ex.getMessage)
-          }
-          docs = List.empty[CleanedDoc]
+        futureRes.onSuccess {
+          case HttpResponse(StatusCodes.OK, _, entity, _) =>
+            //entity.dataBytes.runWith(Sink.head).map(_.utf8String).foreach(println)
+            //needed for backpressure
+            entity.dataBytes.runWith(Sink.ignore)
+            master ! Saved(newBuffer)
+
+          case HttpResponse(code, _, entity, _) =>
+            val resString = entity.dataBytes.runWith(Sink.head).map(_.utf8String)
+            master ! ElasticError(code, Await.result(resString, Duration.Inf))
         }
 
-//      val futureRes: Future[HttpResponse] = insert(cd)
+        futureRes.onFailure {
+          case ex => master ! ServerError(ex.getMessage)
+        }
+        context become bulkSaving(List.empty[CleanedDoc])
 
-//      Await.ready(futureRes, 20 seconds)
-
+      } else context become bulkSaving(newBuffer)
   }
-
 }

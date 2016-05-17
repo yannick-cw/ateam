@@ -7,9 +7,6 @@ import elasticserach_API.ElasticSaveActor
 import elasticserach_API.ElasticSaveActor.{ElasticError, ElasticResult, Saved, ServerError}
 import elasticserach_API.Queries.CleanedDoc
 
-/**
-  * Created by yannick on 10.05.16.
-  */
 object ExtractMaster {
   val props = Props(new ExtractMaster)
 }
@@ -18,7 +15,7 @@ class ExtractMaster extends Actor {
   val fileReader = context.actorOf(FileReader.props(self), "reader")
   val jsonExtractor = context.actorOf(JsonExtractor.props(self), "jsonExtractor")
   val cleaner = context.actorOf(CleanActor.props.withRouter(RoundRobinPool(8)),"cleaner")
-  val elasticSaver = context.actorOf(ElasticSaveActor.props(self)) //.withRouter(RoundRobinPool(16)), "elasticSaver")
+  val elasticSaver = context.actorOf(ElasticSaveActor.props(self))
 
   def receive = waiting(0,0, 1, 1)
 
@@ -32,9 +29,7 @@ class ExtractMaster extends Actor {
 
     case rd@RawDoc(_,_,_) =>
       cleaner ! rd
-//      println(rd)
 //      println(s"docs: $rawDocCount")
-//      println(rd)
       context become waiting(fileCount, rawDocCount + 1, elastiSaved, cleaned)
 
     case cd@CleanedDoc(_,_,_,_) =>

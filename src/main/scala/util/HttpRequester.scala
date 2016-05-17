@@ -18,15 +18,13 @@ trait HttpRequester {
 
   def futureHttpResponse(req: HttpRequest, host: String, port: Int): Future[HttpResponse] = {
 
-    import scala.concurrent.ExecutionContext.Implicits.global
     val connecFlow = Http().outgoingConnection(host, port)
-    val pool = Http().cachedHostConnectionPool[Int](host, port)
 
     val simpleFlow = Source.single(req)
       .via(connecFlow)
       .runWith(Sink.head)
 
-
+//    val pool = Http().cachedHostConnectionPool[Int](host, port)
 //    val poolVariant = Source.single(req -> 1)
 //      .via(pool)
 //      .runWith(Sink.head)
@@ -35,6 +33,7 @@ trait HttpRequester {
 //        case (Failure(f),1) => Future.failed(f)
 //      }
 //    poolVariant
+
     simpleFlow
   }
 }
