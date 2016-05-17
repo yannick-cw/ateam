@@ -14,8 +14,7 @@ object CleanActor {
 class CleanActor extends Actor {
 
   def receive: Receive = {
-    //todo
-    case RawDoc(src, up, text) => sender ! CleanedDoc(src, up, text, "stem(text)")
+    case RawDoc(src, up, text) => sender ! CleanedDoc(src, up, text, stem(text))
   }
 
   def stem(sentence: String): String = {
