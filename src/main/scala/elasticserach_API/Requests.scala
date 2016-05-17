@@ -39,8 +39,7 @@ trait Requests extends HttpRequester with Protocols {
       s"""{ "index": { "_index": "$index", "_type": "$docType" }}\n${doc.toJson.compactPrint}\n"""
     }.mkString
 
-    val request = RequestBuilding.Post(s"/_bulk",
-      entity = HttpEntity(ContentTypes.`application/json`, querie))
+    val request = RequestBuilding.Post(s"/_bulk", entity = HttpEntity(ContentTypes.`application/json`, querie))
     futureHttpResponse(request, "172.17.0.2", 9200)
   }
 
