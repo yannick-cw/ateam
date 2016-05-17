@@ -7,6 +7,7 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
 
 import scala.concurrent.Future
+import scala.util.{Failure, Success, Try}
 
 /**
   * Created by yannick on 07.05.16.
@@ -19,9 +20,15 @@ trait HttpRequester {
 
     //todo lazy??
     val connecFlow = Http().outgoingConnection(host, port)
+    val hostConnectionPool = Http().cachedHostConnectionPool[Int](host, port)
 
-    Source.single(req)
-      .via(connecFlow)
+    import scala.concurrent.ExecutionContext.Implicits.global
+    Source.single(req -> 1)
+      .via(hostConnectionPool)
       .runWith(Sink.head)
+      .flatMap{
+        case (Success(res: HttpResponse), 1) => Future.successful(res)
+        case (Failure(f),1) => Future.failed(f)
+      }
   }
 }

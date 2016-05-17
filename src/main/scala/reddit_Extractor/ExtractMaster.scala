@@ -35,7 +35,7 @@ class ExtractMaster extends Actor {
       context become waiting(fileCount, rawDocCount + 1, if(mostUpvoted.up > rd.up) mostUpvoted else {println(s"most: $rd");rd})
     case cd@CleanedDoc(_,_,_,_) =>
 //      println("cleaned")
-      elasticSaver ! cd
+//      elasticSaver ! cd
     case res: ElasticResult => res match {
       case Saved(cleanedDoc) => println("saved")
       case ElasticError(code, resp) => println(s"Errorcode: $code with $resp")
