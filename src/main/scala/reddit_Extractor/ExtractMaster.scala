@@ -17,7 +17,7 @@ object ExtractMaster {
 class ExtractMaster extends Actor {
   val fileReader = context.actorOf(FileReader.props(self), "reader")
   val jsonExtractor = context.actorOf(JsonExtractor.props(self), "jsonExtractor")
-  val cleanRequester = context.actorOf(CleanRequester.props(self).withRouter(RoundRobinPool(16)), "cleanRequester")
+  val cleanRequester = context.actorOf(CleanRequester.props(self)) //.withRouter(RoundRobinPool(16)), "cleanRequester")
   val elasticSaver = context.actorOf(ElasticSaveActor.props(self).withRouter(RoundRobinPool(16)), "elasticSaver")
 
   def receive = waiting(0,0, RawDoc("",0,""),1, 1)
@@ -36,7 +36,7 @@ class ExtractMaster extends Actor {
       context become waiting(fileCount, rawDocCount + 1, if(mostUpvoted.up > rd.up) mostUpvoted else {println(s"most: $rd");rd},elastiSaved, cleaned)
     case cd@CleanedDoc(_,_,_,_) =>
       println(s"cleaned: $cleaned")
-      elasticSaver ! cd
+//      elasticSaver ! cd
       context become waiting(fileCount, rawDocCount, mostUpvoted, elastiSaved, cleaned + 1)
     case res: ElasticResult => res match {
       case Saved(cleanedDoc) => println(s"saved number: $elastiSaved")
@@ -48,5 +48,5 @@ class ExtractMaster extends Actor {
 }
 
 object Test extends App {
-  ActorSystem("test").actorOf(ExtractMaster.props) ! DirToRead("""/home/yannick/Desktop/testCrawl/subredditarchive/republican 01-01-2011 10-05-2016""")
+  ActorSystem("test").actorOf(ExtractMaster.props) ! DirToRead("""/Users/Yannick/Google Drive/Uni/SS2016/Data_Science/republican 01-01-2011 10-05-2016""")
 }

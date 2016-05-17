@@ -22,12 +22,19 @@ trait HttpRequester {
     val connecFlow = Http().outgoingConnection(host, port)
     val pool = Http().cachedHostConnectionPool[Int](host, port)
 
-    Source.single(req -> 1)
-      .via(pool)
+    val simpleFlow = Source.single(req)
+      .via(connecFlow)
       .runWith(Sink.head)
-      .flatMap{
-        case (Success(res), 1) => Future.successful(res)
-        case (Failure(f),1) => Future.failed(f)
-      }
+
+
+//    val poolVariant = Source.single(req -> 1)
+//      .via(pool)
+//      .runWith(Sink.head)
+//      .flatMap{
+//        case (Success(res), 1) => Future.successful(res)
+//        case (Failure(f),1) => Future.failed(f)
+//      }
+//    poolVariant
+    simpleFlow
   }
 }
