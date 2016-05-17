@@ -31,7 +31,7 @@ class ElasticSaveActorSpec extends TestKit(ActorSystem())
     "respond with the CleanedDoc if the save worked" in {
       val elasticActorWithMockedHttp = system.actorOf(Props(new ElasticSaveActor(testActor){
         override def insert(cleanedDoc: CleanedDoc): Future[HttpResponse] = {
-          Future(HttpResponse(StatusCodes.OK, entity = HttpEntity(ContentTypes.`application/json`, msg.toJson.prettyPrint.getBytes())))
+          Future(HttpResponse(StatusCodes.Created, entity = HttpEntity(ContentTypes.`application/json`, msg.toJson.prettyPrint.getBytes())))
         }
       }))
 
