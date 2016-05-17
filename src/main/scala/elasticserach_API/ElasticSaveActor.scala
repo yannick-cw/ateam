@@ -38,6 +38,8 @@ class ElasticSaveActor(master: ActorRef) extends Actor with Requests {
       futureRes.onSuccess {
         case HttpResponse(StatusCodes.Created, _, entity, _) =>
 //          entity.dataBytes.runWith(Sink.head).map(_.utf8String).foreach(println)
+          //needed for backpressure
+          entity.dataBytes.runWith(Sink.ignore)
           master ! Saved(cd)
 
         case HttpResponse(code , _, entity, _) =>
