@@ -31,6 +31,19 @@ trait Requests extends HttpRequester with Protocols {
     }
   }
 
+  def bulkInsert(docs: List[CleanedDoc]): Future[HttpResponse] = {
+    val querie = docs.map{ doc =>
+      //todo
+      val index = matchIndex(doc).get
+      val docType = doc.src.toLowerCase
+      s"""{ "index": { "_index": "$index", "_type": "$docType" }}\n${doc.toJson.compactPrint}\n"""
+    }.mkString
+
+    val request = RequestBuilding.Post(s"/_bulk",
+      entity = HttpEntity(ContentTypes.`application/json`, querie))
+    futureHttpResponse(request, "172.17.0.2", 9200)
+  }
+
   private def matchIndex(cleanedDoc: CleanedDoc): Option[String] = cleanedDoc.src match {
     case "Republicans" => Some(rep)
     case "Republican" => Some(rep)
