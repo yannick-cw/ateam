@@ -31,13 +31,14 @@ trait Requests extends HttpRequester with Protocols {
     }
   }
 
-  def bulkInsert(docs: List[CleanedDoc]): Future[HttpResponse] = {
+  def bulkInsert(docs: Seq[CleanedDoc]): Future[HttpResponse] = {
     val querie = docs.map{ doc =>
       //todo
       val index = matchIndex(doc).get
       val docType = doc.src.toLowerCase
       s"""{ "index": { "_index": "$index", "_type": "$docType" }}\n${doc.toJson.compactPrint}\n"""
     }.mkString
+//    println(querie)
 
     val request = RequestBuilding.Post(s"/_bulk",
       entity = HttpEntity(ContentTypes.`application/json`, querie))
