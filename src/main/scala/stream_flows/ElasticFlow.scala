@@ -1,11 +1,11 @@
 package stream_flows
 
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
-import akka.stream.scaladsl.{Flow, Sink}
+import akka.stream.scaladsl.{Flow, Sink, Source}
 import elasticserach_API.Queries.CleanedDoc
 import elasticserach_API.Requests
-import scala.concurrent.duration._
 
+import scala.concurrent.duration._
 import scala.concurrent.Await
 
 trait ElasticFlow extends Requests {
