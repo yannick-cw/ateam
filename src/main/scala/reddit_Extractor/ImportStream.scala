@@ -2,7 +2,7 @@ package reddit_Extractor
 
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.stream.scaladsl.{Sink, Source}
-import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
+import akka.stream.{ActorMaterializer, ActorMaterializerSettings, Supervision}
 import elasticserach_API.Requests
 import reddit_Extractor.ImportStream.{InputFiles, _}
 import stream_flows.{CleaningFlow, ElasticFlow, JsonExtractFlow}
@@ -23,8 +23,8 @@ object ImportStream {
 class ImportStream extends Actor with Requests with CleaningFlow with ElasticFlow with JsonExtractFlow {
   val fileReader = context.actorOf(FileReader.props(self), "reader")
   implicit val system = context.system
-//  val decider: Supervision.Decider = { case _: StringIndexOutOfBoundsException => Supervision.Resume }
-  val materializer = ActorMaterializer(ActorMaterializerSettings(system)) //.withSupervisionStrategy(decider))
+  val decider: Supervision.Decider = { case _: StringIndexOutOfBoundsException => Supervision.Resume }
+  val materializer = ActorMaterializer(ActorMaterializerSettings(system).withSupervisionStrategy(decider))
 
 
   def receive: Receive = {

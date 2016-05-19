@@ -21,6 +21,7 @@ trait ElasticFlow extends Requests {
         //needed for backpressure
         //todo maybe filter not 201 jsons from entity
         entity.dataBytes.runWith(Sink.ignore)
+        println("saved one more to elasti")
         Future("saved bulk successful")
 
       case HttpResponse(code, _, entity, _) =>

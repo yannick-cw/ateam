@@ -66,5 +66,28 @@ class CleaningFlowSpec extends WordSpecLike with CleaningFlow with MustMatchers 
       val result = Await.result(src, 100 millis)
       result must be(output)
     }
+
+    "stem a single s" in {
+      val input = RawDoc("Rep", 2,"s")
+      val output = CleanedDoc("Rep", 2, input.text, "s")
+
+      val src = Source(List(input))
+        .via(stemming)
+        .runWith(Sink.head)
+
+      val result = Await.result(src, 100 millis)
+      result must be(output)
+    }
+    "stem a ls" in {
+      val input = RawDoc("Rep", 2,"ls")
+      val output = CleanedDoc("Rep", 2, input.text, "ls")
+
+      val src = Source(List(input))
+        .via(stemming)
+        .runWith(Sink.head)
+
+      val result = Await.result(src, 100 millis)
+      result must be(output)
+    }
   }
 }
