@@ -6,25 +6,26 @@ import elasticserach_API.Queries.CleanedDoc
 import elasticserach_API.Requests
 
 import scala.concurrent.duration._
-import scala.concurrent.Await
+import scala.concurrent.{Await, Future}
 
 trait ElasticFlow extends Requests {
-  val insertBulkElastic = Flow[Seq[CleanedDoc]].map { docs =>
+  val saveBulkToElastic = Flow[Seq[CleanedDoc]].map { docs =>
     val futureRes = bulkInsert(docs)
     Await.ready(futureRes, 10 seconds)
     import scala.concurrent.ExecutionContext.Implicits.global
 
-    futureRes.onSuccess {
+    futureRes.flatMap {
       case HttpResponse(StatusCodes.OK, _, entity, _) =>
         //entity.dataBytes.runWith(Sink.head).map(_.utf8String).foreach(println)
+
         //needed for backpressure
-//        println("saved bulk successful")
+        //todo maybe filter not 201 jsons from entity
         entity.dataBytes.runWith(Sink.ignore)
+        Future("saved bulk successful")
 
       case HttpResponse(code, _, entity, _) =>
         import scala.concurrent.ExecutionContext.Implicits.global
-        val resString = entity.dataBytes.runWith(Sink.head).map(_.utf8String)
-        println(resString)
+        entity.dataBytes.runWith(Sink.head).map(_.utf8String)
     }
   }
 }

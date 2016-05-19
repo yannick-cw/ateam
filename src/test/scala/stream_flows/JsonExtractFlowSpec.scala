@@ -11,7 +11,7 @@ import scala.concurrent.duration._
 import scala.concurrent.Await
 
 class JsonExtractFlowSpec extends WordSpecLike with JsonExtractFlow with MustMatchers {
-  implicit val sytem = ActorSystem()
+  implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
 
   "A JsonExtractFlow" must {
@@ -19,7 +19,6 @@ class JsonExtractFlowSpec extends WordSpecLike with JsonExtractFlow with MustMat
       val input = TestData.basicInput
       val src = Source(List(input))
         .via(jsonExtraction)
-        .mapConcat(identity)
         .runWith(Sink.seq)
       val result = Await.result(src, 100 millis)
       result must be(TestData.basicResult)
@@ -29,7 +28,6 @@ class JsonExtractFlowSpec extends WordSpecLike with JsonExtractFlow with MustMat
       val input = "this is not okay"
       val src = Source(List(input))
         .via(jsonExtraction)
-        .mapConcat(identity)
         .runWith(Sink.seq)
       val result = Await.result(src, 100 millis)
       result must be(List.empty[RawDoc])
