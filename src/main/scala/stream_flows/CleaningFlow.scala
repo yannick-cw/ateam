@@ -1,29 +1,22 @@
-package cleaning
+package stream_flows
 
-import java.lang.StringBuilder
-
-import akka.actor.{Actor, Props}
+import akka.stream.scaladsl.Flow
 import elasticserach_API.Queries.CleanedDoc
-import reddit_Extractor.RawDoc
+import reddit_Extractor.ImportStream.RawDoc
+import util.StopWords
 
-object CleanActor {
-  val props = Props(new CleanActor())
-  val name = "clean-actor"
-}
+trait CleaningFlow {
+  val stemming = Flow[RawDoc].map { rawDoc =>
 
-class CleanActor extends Actor {
+    val lowerCase = rawDoc.text.toLowerCase.trim
+    val withoutSpecialChars = lowerCase.replaceAll("[^a-z0-9 ]", "")
+    val withoutStopwords = withoutSpecialChars.split(" +").filterNot(word => StopWords.stopWords.contains(word))
+    val stemmed = withoutStopwords.map(word => step_5(step_4(step_3(step_2(step_1(word))))))
+    val stemmedText = stemmed.mkString(" ")
 
-  def receive: Receive = {
-    case RawDoc(src, up, text) => sender ! CleanedDoc(src, up, text, stem(text))
+    CleanedDoc(rawDoc.party, rawDoc.up, rawDoc.text, stemmedText)
   }
 
-  def stem(sentence: String): String = {
-    //toDO: remove stopwords
-    val withoutSpecialChars = sentence.replaceAll("[^A-Za-z0-9 ]","").toLowerCase().trim().split(" +").toList
-
-    val result: List[String] = withoutSpecialChars.map(word => step_5(step_4(step_3(step_2(step_1(word))))))
-    result.reduce(_ + " " + _)
-  }
 
   def step_1(str: String): String = step_1_c(step_1_b(step_1_a(str)))
 
@@ -74,13 +67,13 @@ class CleanActor extends Actor {
     str
   } // end step1c
 
-  def step_2(str: String): String = replacePatterns(str, List(("ational", "ate"), ("tional", "tion"), ("enci", "ence"), ("anci", "ance"),
+  def step_2(str: String): String = replacePatternss(str, List(("ational", "ate"), ("tional", "tion"), ("enci", "ence"), ("anci", "ance"),
     ("izer", "ize"), ("bli", "ble"), ("alli", "al"), ("entli", "ent"), ("eli", "e"),
     ("ousli", "ous"), ("ization", "ize"), ("ation", "ate"), ("ator", "ate"), ("alism", "al"),
     ("iveness", "ive"), ("fulness", "ful"), ("ousness", "ous"), ("aliti", "al"), ("iviti", "ive"),
     ("biliti", "ble"), ("logi", "log")))
 
-  def step_3(str: String): String = replacePatterns(str, List(("icate", "ic"), ("ative", ""), ("alize", "al"), ("iciti", "ic"), ("ical", "ic"), ("ful", ""), ("ness", "")))
+  def step_3(str: String): String = replacePatternss(str, List(("icate", "ic"), ("ative", ""), ("alize", "al"), ("iciti", "ic"), ("ical", "ic"), ("ful", ""), ("ness", "")))
 
   def step_4(str: String): String = {
     val res: String = replacePatterns(str, List(("al", ""), ("ance", ""), ("ence", ""), ("er", ""), ("ic", ""), ("able", ""), ("ible", ""), ("ant", ""), ("ement", ""),
@@ -148,7 +141,7 @@ class CleanActor extends Actor {
   /*
    * Special check for 'y', since it may be both vowel and consonent depending on surrounding letters
    */
-  def isVowel(str: String, i: Int): Boolean = {
+  def isVowels(str: String, i: Int): Boolean = {
     for (ch <- "aeiou" toList)
       if (str(i) == ch || (str(i) == 'y' && i > 0 && i + 1 < str.length && !isVowel(str(i - 1)) && !isVowel(str(i + 1))))
         return true
@@ -161,7 +154,7 @@ class CleanActor extends Actor {
     var vowelSeen: Boolean = false
 
     for (i <- 0 to str.length - 1) {
-      if (isVowel(str, i)) {
+      if (isVowels(str, i)) {
         vowelSeen = true
       } else if (vowelSeen) {
         count += 1
@@ -179,7 +172,7 @@ class CleanActor extends Actor {
 
       if ((cvc._1 == 'w') || (cvc._1 == 'x') || (cvc._1 == 'y'))
         false
-      else if (!isVowel(cvc._1) && isVowel(cvc_str, 1) && !isVowel(cvc._3))
+      else if (!isVowel(cvc._1) && isVowels(cvc_str, 1) && !isVowel(cvc._3))
         true
       else
         false
@@ -198,7 +191,7 @@ class CleanActor extends Actor {
     false
   } // end function
 
-  def replacePatterns(str: String, patterns: List[(String, String)]): String = replacePatterns(str, patterns, _ > 0)
+  def replacePatternss(str: String, patterns: List[(String, String)]): String = replacePatterns(str, patterns, _ > 0)
 
   def replaceLast(str: String, pattern: String, replacement: String) = new StringBuilder(str).replace(str.lastIndexOf(pattern), str.lastIndexOf(pattern) + pattern.length, replacement).toString
 
@@ -213,5 +206,5 @@ class CleanActor extends Actor {
       }
     str
   }
-}
 
+}
