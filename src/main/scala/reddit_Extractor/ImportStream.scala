@@ -1,13 +1,14 @@
 package reddit_Extractor
 
 import akka.actor.{Actor, ActorSystem, Props}
-import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.{Sink, Source}
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings, Supervision}
 import elasticserach_API.Requests
 import reddit_Extractor.ImportStream.InputFiles
 import stream_flows.{CleaningFlow, ElasticFlow, JsonExtractFlow}
 
-import scala.util.Failure
+import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 /**
   * Created by yannick on 10.05.16.
@@ -35,11 +36,10 @@ class ImportStream extends Actor with Requests with CleaningFlow with ElasticFlo
     case in: InputFiles =>
       val res = Source(in.files)
         .via(jsonExtraction)
-        .mapConcat(identity)
         .via(cleaning)
         .grouped(elasticBulk)
         .via(insertBulkElastic)
-        .runForeach(r => Unit)(materializer)
+        .runWith(Sink.ignore)(materializer)
 
       import scala.concurrent.ExecutionContext.Implicits.global
       res.onFailure{case ex => ex.printStackTrace()}

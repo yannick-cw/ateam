@@ -4,7 +4,7 @@ import akka.stream.scaladsl.Flow
 import reddit_Extractor.ImportStream.RawDoc
 
 trait JsonExtractFlow {
-  val jsonExtraction = Flow[String].map { str =>
+  val jsonExtraction = Flow[String].mapConcat{ str =>
     val commentsMatcher = """"body": "(.*?[^\\])".*?"ups": (-?\d*)""".r
     val subredditMatcher = """"subreddit": "([a-zA-Z]*)"""".r
     val titleMatcher = """"title": "(.*?[^\\])".*?"ups": (\d*)""".r
