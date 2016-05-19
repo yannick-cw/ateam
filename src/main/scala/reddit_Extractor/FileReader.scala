@@ -3,6 +3,7 @@ package reddit_Extractor
 import java.io.File
 
 import akka.actor.{Actor, ActorRef, Props}
+import reddit_Extractor.ImportStream.InputFiles
 
 import scala.io.Source
 
@@ -22,7 +23,7 @@ class FileReader(master: ActorRef) extends Actor {
         val source = Source.fromFile(f)
         try source.mkString finally source.close()
       }
-      files.foreach(master ! InputString(_))
+      master ! InputFiles(files)
   }
 
   def getFiles(dir: String): List[File] = {
