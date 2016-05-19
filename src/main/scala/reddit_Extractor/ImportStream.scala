@@ -2,17 +2,13 @@ package reddit_Extractor
 
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.stream.scaladsl.{Sink, Source}
-import akka.stream.{ActorMaterializer, ActorMaterializerSettings, Supervision}
+import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import elasticserach_API.Requests
-import reddit_Extractor.ImportStream.InputFiles
+import reddit_Extractor.ImportStream.{InputFiles, _}
 import stream_flows.{CleaningFlow, ElasticFlow, JsonExtractFlow}
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
 
-/**
-  * Created by yannick on 10.05.16.
-  */
 object ImportStream {
   val props = Props(new ImportStream())
 
@@ -20,29 +16,33 @@ object ImportStream {
 
   case class InputFiles(files: List[String])
 
+  val elasticBulkSize: Int = 100
+
 }
 
 class ImportStream extends Actor with Requests with CleaningFlow with ElasticFlow with JsonExtractFlow {
   val fileReader = context.actorOf(FileReader.props(self), "reader")
   implicit val system = context.system
-  //todo fix
-  val decider: Supervision.Decider = { case _: StringIndexOutOfBoundsException => Supervision.Resume }
-  val materializer = ActorMaterializer(ActorMaterializerSettings(system).withSupervisionStrategy(decider))
-  val elasticBulk: Int = 100
+//  val decider: Supervision.Decider = { case _: StringIndexOutOfBoundsException => Supervision.Resume }
+  val materializer = ActorMaterializer(ActorMaterializerSettings(system)) //.withSupervisionStrategy(decider))
 
 
   def receive: Receive = {
     case dtr@DirToRead(_) => fileReader ! dtr
     case in: InputFiles =>
-      val res = Source(in.files)
+      val res: Future[Seq[Future[String]]] = Source(in.files)
         .via(jsonExtraction)
-        .via(cleaning)
-        .grouped(elasticBulk)
-        .via(insertBulkElastic)
-        .runWith(Sink.ignore)(materializer)
+        .filterNot(_.text.trim.isEmpty)
+        .via(stemming)
+        .grouped(elasticBulkSize)
+        .via(saveBulkToElastic)
+        .runWith(Sink.seq)(materializer)
 
       import scala.concurrent.ExecutionContext.Implicits.global
-      res.onFailure{case ex => ex.printStackTrace()}
+      res.onFailure{ case ex => ex.printStackTrace() }
+
+      val successResult = res.flatMap{ seq => Future.sequence(seq)}
+      successResult.onFailure{ case ex => ex.printStackTrace() }
   }
 }
 

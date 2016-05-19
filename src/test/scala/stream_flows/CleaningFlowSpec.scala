@@ -21,10 +21,46 @@ class CleaningFlowSpec extends WordSpecLike with CleaningFlow with MustMatchers 
   "A CleaningFlow" must {
     "clean up a simple input" in {
       val input = RawDoc("Rep", 2,"darping derpIng      fucking hugging            what")
-      val output = CleanedDoc("Rep", 2, "darping derpIng      fucking hugging            what", "darp derp fuck hug what")
+      val output = CleanedDoc("Rep", 2, input.text, "darp derp fuck hug")
 
       val src = Source(List(input))
-        .via(cleaning)
+        .via(stemming)
+        .runWith(Sink.head)
+
+      val result = Await.result(src, 100 millis)
+      result must be(output)
+    }
+
+    "do not break with leading spaces" in {
+      val input = RawDoc("Rep", 2,"  test what")
+      val output = CleanedDoc("Rep", 2, input.text, "test")
+
+      val src = Source(List(input))
+        .via(stemming)
+        .runWith(Sink.head)
+
+      val result = Await.result(src, 100 millis)
+      result must be(output)
+    }
+
+    "remove obvious stopwords" in {
+      val input = RawDoc("Rep", 2,"am the this that when where not")
+      val output = CleanedDoc("Rep", 2, input.text, "")
+
+      val src = Source(List(input))
+        .via(stemming)
+        .runWith(Sink.head)
+
+      val result = Await.result(src, 100 millis)
+      result must be(output)
+    }
+
+    "stem to the same word" in {
+      val input = RawDoc("Rep", 2,"stems stemming stemmed stem")
+      val output = CleanedDoc("Rep", 2, input.text, "stem stem stem stem")
+
+      val src = Source(List(input))
+        .via(stemming)
         .runWith(Sink.head)
 
       val result = Await.result(src, 100 millis)
