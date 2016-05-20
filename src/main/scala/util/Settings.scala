@@ -7,6 +7,7 @@ import akka.actor.ActorSystem
   */
 class Settings(system: ActorSystem) {
   object elasti {
+    println(system.name)
     val host = system.settings.config.getString("akka.elasticsearch.host")
     val port = system.settings.config.getInt("akka.elasticsearch.port")
   }
