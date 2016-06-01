@@ -32,23 +32,31 @@ trait Requests extends HttpRequester with Protocols {
   }
 
   def bulkInsert(docs: Seq[CleanedDoc]): Future[HttpResponse] = {
-    val querie = docs.map{ doc =>
+    val querie = docs.map { doc =>
       //todo
       val index = matchIndex(doc).get
       val docType = doc.src.toLowerCase
       s"""{ "index": { "_index": "$index", "_type": "$docType" }}\n${doc.toJson.compactPrint}\n"""
     }.mkString
-//    println(querie)
+    //    println(querie)
 
     val request = RequestBuilding.Post(s"/_bulk", entity = HttpEntity(ContentTypes.`application/json`, querie))
     futureHttpResponse(request, settings.elasti.host, settings.elasti.port)
   }
 
-  private def matchIndex(cleanedDoc: CleanedDoc): Option[String] = cleanedDoc.src match {
-    case "Republicans" => Some(rep)
-    case "Republican" => Some(rep)
-    case "democrats" => Some(dem)
-    case "Democrat" => Some(dem)
-    case any => None
+  private def matchIndex(cleanedDoc: CleanedDoc): Option[String] = {
+
+    println(cleanedDoc.src)
+    val subRedditToIndex = Map(
+      "republicans" -> rep,
+      "Republican" -> rep,
+      "Conservative" -> rep,
+      "democrats" -> dem,
+      "Liberal" -> dem,
+      "Democrat" -> dem,
+      "SandersForPresident" -> dem
+    )
+
+    subRedditToIndex.get(cleanedDoc.src)
   }
 }

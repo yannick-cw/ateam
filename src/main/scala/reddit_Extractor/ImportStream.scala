@@ -33,7 +33,6 @@ class ImportStream extends Actor with Requests with CleaningFlow with ElasticFlo
   }
   val settings = Settings(system)
 
-  val decider: Supervision.Decider = { case _: StringIndexOutOfBoundsException => Supervision.Resume }
   val materializer = ActorMaterializer(ActorMaterializerSettings(system).withSupervisionStrategy(decider))
 
 
@@ -59,5 +58,5 @@ class ImportStream extends Actor with Requests with CleaningFlow with ElasticFlo
 
 
 object Test extends App {
-  ActorSystem("test").actorOf(Props(new ImportStream())) ! DirToRead("""/home/yannick/Desktop/testCrawl/subredditarchive/republican 01-01-2011 10-05-2016""")
+  ActorSystem("test").actorOf(Props(new ImportStream())) ! DirToRead("""/Users/437580/otherWS/poc/raw_ressources/republican""")
 }
