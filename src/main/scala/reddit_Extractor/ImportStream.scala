@@ -23,7 +23,12 @@ object ImportStream {
 class ImportStream extends Actor with Requests with CleaningFlow with ElasticFlow with JsonExtractFlow {
   val fileReader = context.actorOf(FileReader.props(self), "reader")
   implicit val system = context.system
-  val decider: Supervision.Decider = { case _: StringIndexOutOfBoundsException => Supervision.Resume }
+  val decider: Supervision.Decider = {
+    case _: StringIndexOutOfBoundsException => Supervision.Resume
+    case any =>
+      any.printStackTrace()
+      Supervision.Stop
+  }
   val materializer = ActorMaterializer(ActorMaterializerSettings(system).withSupervisionStrategy(decider))
 
 
@@ -42,6 +47,7 @@ class ImportStream extends Actor with Requests with CleaningFlow with ElasticFlo
       res.onFailure{ case ex => ex.printStackTrace() }
 
       val successResult = res.flatMap{ seq => Future.sequence(seq)}
+      successResult.onComplete{ case a => println("finished")}
       successResult.onFailure{ case ex => ex.printStackTrace() }
   }
 }

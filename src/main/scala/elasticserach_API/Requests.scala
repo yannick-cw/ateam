@@ -48,7 +48,7 @@ trait Requests extends HttpRequester with Protocols {
   private def matchIndex(cleanedDoc: CleanedDoc): Option[String] = cleanedDoc.src match {
     case "Republicans" => Some(rep)
     case "Republican" => Some(rep)
-    case "Democrats" => Some(dem)
+    case "democrats" => Some(dem)
     case "Democrat" => Some(dem)
     case any => None
   }
