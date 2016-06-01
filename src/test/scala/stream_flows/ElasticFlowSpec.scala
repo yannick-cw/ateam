@@ -4,9 +4,11 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.model._
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
+import akka.testkit.TestKit
 import elasticserach_API.Queries.CleanedDoc
 import org.scalatest.{MustMatchers, WordSpecLike}
 import reddit_Extractor.ImportStream.RawDoc
+import util.Settings
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
@@ -16,16 +18,19 @@ import scala.concurrent.ExecutionContext.Implicits.global
 /**
   * Created by Yannick on 19.05.16.
   */
-class ElasticFlowSpec extends WordSpecLike with MustMatchers {
-  implicit val system = ActorSystem()
+class ElasticFlowSpec extends TestKit(ActorSystem("testSys")) with WordSpecLike with MustMatchers {
   implicit val materializer = ActorMaterializer()
+  val testSys = system
+  val testMat = materializer
 
   "An elasticFlow" must {
     "report back with saved bulk successful if server response is 200" in {
 
       val flowToTest = new ElasticFlow {
-        override implicit val materializer: ActorMaterializer = materializer
-        override implicit val system: ActorSystem = system
+        val settings = Settings(testSys)
+
+        override implicit val materializer: ActorMaterializer = testMat
+        override implicit val system: ActorSystem = testSys
 
         override def futureHttpResponse(req: HttpRequest, host: String, port: Int): Future[HttpResponse] = {
           Future.successful(HttpResponse(entity = HttpEntity(ContentTypes.`application/json`,"ignore")))
@@ -45,8 +50,10 @@ class ElasticFlowSpec extends WordSpecLike with MustMatchers {
     "report back with the entity if code is not 200" in {
 
       val flowToTest = new ElasticFlow {
-        override implicit val materializer: ActorMaterializer = materializer
-        override implicit val system: ActorSystem = system
+        val settings = Settings(testSys)
+
+        override implicit val materializer: ActorMaterializer = testMat
+        override implicit val system: ActorSystem = testSys
 
         override def futureHttpResponse(req: HttpRequest, host: String, port: Int): Future[HttpResponse] = {
           Future.successful(HttpResponse(entity = HttpEntity(ContentTypes.`application/json`,"you fucked up"), status = StatusCodes.BadRequest))
@@ -62,11 +69,13 @@ class ElasticFlowSpec extends WordSpecLike with MustMatchers {
       result.foreach(_.foreach(_ must be("you fucked up")))
     }
 
-    "Let the future fail, if the s" in {
+    "Let the future fail, if the HttpRequests fails with an exception" in {
 
       val flowToTest = new ElasticFlow {
-        override implicit val materializer: ActorMaterializer = materializer
-        override implicit val system: ActorSystem = system
+        val settings = Settings(testSys)
+
+        override implicit val materializer: ActorMaterializer = testMat
+        override implicit val system: ActorSystem = testSys
 
         override def futureHttpResponse(req: HttpRequest, host: String, port: Int): Future[HttpResponse] = {
           Future.failed(new IllegalArgumentException)

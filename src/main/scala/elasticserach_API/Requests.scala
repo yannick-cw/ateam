@@ -7,12 +7,12 @@ import spray.json._
 import util._
 
 import scala.concurrent.Future
-import scala.util.Failure
 
 /**
   * Created by yannick on 07.05.16.
   */
 trait Requests extends HttpRequester with Protocols {
+  val settings: Settings
   val (rep, dem) = ("rep", "dem")
 
   def insert(cleanedDoc: CleanedDoc): Future[HttpResponse] = {
@@ -23,7 +23,7 @@ trait Requests extends HttpRequester with Protocols {
       case Some(str) =>
         val request = RequestBuilding.Post(s"/$str/$docType/",
           entity = HttpEntity(ContentTypes.`application/json`, cleanedDoc.toJson.compactPrint))
-        futureHttpResponse(request, "172.17.0.2", 9200)
+        futureHttpResponse(request, settings.elasti.host, settings.elasti.port)
 
       case None =>
         import scala.concurrent.ExecutionContext.Implicits.global
@@ -40,9 +40,8 @@ trait Requests extends HttpRequester with Protocols {
     }.mkString
 //    println(querie)
 
-    val request = RequestBuilding.Post(s"/_bulk",
-      entity = HttpEntity(ContentTypes.`application/json`, querie))
-    futureHttpResponse(request, "172.17.0.2", 9200)
+    val request = RequestBuilding.Post(s"/_bulk", entity = HttpEntity(ContentTypes.`application/json`, querie))
+    futureHttpResponse(request, settings.elasti.host, settings.elasti.port)
   }
 
   private def matchIndex(cleanedDoc: CleanedDoc): Option[String] = cleanedDoc.src match {
