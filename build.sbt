@@ -1,4 +1,4 @@
-name := "poc-importer"
+name := "poc_importer"
 
 version := "0.1-SNAPSHOT"
 
