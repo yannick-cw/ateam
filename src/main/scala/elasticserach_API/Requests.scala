@@ -34,10 +34,14 @@ trait Requests extends HttpRequester with Protocols {
       "republicans" -> rep,
       "Republican" -> rep,
       "Conservative" -> rep,
+      "AskTrumpSupporters" -> rep,
+      "The_Donald" -> rep,
       "democrats" -> dem,
       "Liberal" -> dem,
       "Democrat" -> dem,
-      "SandersForPresident" -> dem
+      "SandersForPresident" -> dem,
+      "hillaryclinton" -> dem,
+      "obama" -> dem
     )
 
     subRedditToIndex.get(cleanedDoc.src)
