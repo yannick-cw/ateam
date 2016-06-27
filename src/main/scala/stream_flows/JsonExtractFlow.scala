@@ -6,7 +6,7 @@ import reddit_Extractor.ImportStream.RawDoc
 trait JsonExtractFlow {
   val jsonExtraction = Flow[String].mapConcat{ str =>
     val commentsMatcher = """"body": "(.*?[^\\])".*?"ups": (-?\d*)""".r
-    val subredditMatcher = """"subreddit": "([a-zA-Z]*)"""".r
+    val subredditMatcher = """"subreddit": "([a-zA-Z_]*)"""".r
     val titleMatcher = """"title": "(.*?[^\\])".*?"ups": (\d*)""".r
 
 
@@ -17,6 +17,7 @@ trait JsonExtractFlow {
           titleMatcher.findAllIn(input).matchData.map { m => RawDoc(subreddit, m.group(2).toInt, m.group(1)) }.toList
       }
     }
+
     extractRawDocs(str).getOrElse(List.empty[RawDoc])
   }
 }
