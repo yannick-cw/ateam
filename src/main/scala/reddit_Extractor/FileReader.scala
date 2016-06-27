@@ -16,14 +16,15 @@ object FileReader {
 
 case class DirToRead(dir: String)
 
-class FileReader(master: ActorRef) extends Actor {
+class FileReader(actorSource: ActorRef) extends Actor {
   def receive: Receive = {
     case DirToRead(dir) =>
-      val files = getFiles(dir).map{f =>
+        getFiles(dir).foreach{f =>
+//        println(s"currently at file $index of ${allFiles.size} total files.")
         val source = Source.fromFile(f)
-        try source.mkString finally source.close()
+          val text: String = try source.mkString finally source.close()
+          actorSource ! text
       }
-      master ! InputFiles(files)
   }
 
   def getFiles(dir: String): List[File] = {

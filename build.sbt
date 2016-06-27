@@ -18,4 +18,5 @@ libraryDependencies += "org.twitter4j" % "twitter4j-stream" % "4.0.4"
 
 libraryDependencies += "com.typesafe.akka" % "akka-http-spray-json-experimental_2.11" % "2.4.4"
 
-
+fork in run := true
+javaOptions ++= Seq("-Xms512M", "-Xmx4G", "-XX:+UseConcMarkSweepGC")
