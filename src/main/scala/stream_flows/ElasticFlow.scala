@@ -11,7 +11,7 @@ import scala.concurrent.{Await, Future}
 trait ElasticFlow extends Requests {
   val saveBulkToElastic = Flow[Seq[CleanedDoc]].map { docs =>
     val futureRes = bulkInsert(docs)
-    Await.ready(futureRes, 10 seconds)
+    Await.ready(futureRes, 2000 seconds)
     import scala.concurrent.ExecutionContext.Implicits.global
 
     futureRes.flatMap {
