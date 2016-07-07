@@ -1,5 +1,3 @@
 # poc-importer
 
-## pov overview
-
-https://drive.google.com/open?id=0B-_izPhHpyuEYTBDWS1yT2RRSFE
+goto https://github.com/yannick-cw/poc_analyzer
